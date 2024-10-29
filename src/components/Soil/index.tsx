@@ -1,5 +1,8 @@
-import { Children, useEffect, useRef, useState } from "react";
-import { getPlantsInstance, PlantStatus } from "@/plants/Plants";
+import { Children, useEffect, useState } from "react";
+import { getPlantsInstance, PlantStatus, PlantsType } from "@/plants/Plants";
+import { useSolidConfig } from "@/states/Solid/hook";
+import { useSeeds, useSelectedTool } from "@/states/Package/hook";
+import { Seed } from "@/states/Package/reducer";
 import Icon from "../icon";
 import dayjs from "dayjs";
 import c from "classnames";
@@ -22,7 +25,7 @@ export type Solid = {
   status: SolidStatus;
   current_solid_grade?: number;
   plants?: {
-    type: string;
+    type: PlantsType;
     both_time: number;
   };
 };
@@ -32,7 +35,7 @@ export type LandConfig = {
   status: SolidStatus;
   current_solid_grade?: number;
   plants?: {
-    type: string;
+    type: PlantsType;
     name: string;
     icon_name?: string;
     both_time: number;
@@ -40,39 +43,24 @@ export type LandConfig = {
   };
 };
 
-// 数据库中读取的数据
-const initSolidConfig = [
-  {
-    id: 1,
-    status: SolidStatus.DEVELOPED,
-    current_solid_grade: 0,
-    plants: {
-      type: "cabbage",
-      both_time: dayjs("2024-10-28 16:00").unix(),
-    },
-  },
-  {
-    id: 2,
-    status: SolidStatus.DEVELOPED,
-    current_solid_grade: 0,
-  },
-  ...new Array(14).fill(0).map((_, index) => ({
-    id: index + 2,
-    status: SolidStatus.UN_DEVELOPED,
-  })),
-];
-
 const Soil = () => {
   const [landConfig, setLandConfig] = useState<LandConfig[]>([]);
-  const solidConfig = useRef<Solid[]>(initSolidConfig);
+
+  const { seeds } = useSeeds();
+
+  const { solidConfig, updateSolidConfig } = useSolidConfig();
+
+  const { is_seed, is_hoe, selected_tool, selectNone } = useSelectedTool();
+
+  const { updateSeeds } = useSeeds();
 
   useEffect(() => {
     const initializeLandConfig = async () => {
       const initLandConfig = await Promise.all(
-        solidConfig.current.map(async (sol: Solid) => {
+        solidConfig.map(async (sol: Solid) => {
           if (sol.status === SolidStatus.DEVELOPED && sol.plants) {
             const plantInstance = await getPlantsInstance({
-              type: "cabbage",
+              type: sol.plants.type,
               data: {
                 both_time: sol.plants?.both_time,
                 current_solid_grade: sol.current_solid_grade!,
@@ -110,21 +98,70 @@ const Soil = () => {
   }, [solidConfig]);
 
   const handleClickSolidBlock = async (land: LandConfig, index: number) => {
-    document.body.style.cursor = "auto";
+    // 播种模式
+    if (land.status === SolidStatus.DEVELOPED && !land.plants && is_seed) {
+      const selected_seed = selected_tool as Seed;
+      const seed_num_in_package = seeds.find((seed) => seed.type === selected_seed.type)?.num;
 
-    if (land.status === SolidStatus.DEVELOPED && !land.plants) {
+      if (seed_num_in_package! <= 0) {
+        document.body.style.cursor = "auto";
+        return selectNone();
+      }
+
       const newPlant = {
-        type: "cabbage",
+        type: selected_seed?.type,
         both_time: dayjs().unix(),
       };
-      const initConfig = [...initSolidConfig];
+
+      const initConfig = [...solidConfig];
 
       initConfig[index] = {
         ...initConfig[index],
         plants: newPlant,
       };
 
-      solidConfig.current = initConfig;
+      updateSolidConfig(initConfig);
+      updateSeeds(selected_seed);
+      // document.body.style.cursor = "auto";
+    }
+
+    // 铲子模式
+    if (is_hoe) {
+      // 空地
+      if (land.status === SolidStatus.UN_DEVELOPED) {
+        // 开发空地
+        const initConfig = [...solidConfig];
+        initConfig[index] = {
+          ...initConfig[index],
+          status: SolidStatus.DEVELOPED,
+        };
+        updateSolidConfig(initConfig);
+      }
+
+      // 植物
+      if (land.status === SolidStatus.DEVELOPED && land.plants) {
+        // 铲除植物
+        const initConfig = [...solidConfig];
+        initConfig[index] = {
+          ...initConfig[index],
+          plants: undefined,
+        };
+        updateSolidConfig(initConfig);
+      }
+    }
+
+    // 收获模式
+    if (!is_hoe && !is_seed && land.status === SolidStatus.DEVELOPED && land.plants) {
+      const landPlant = land.plants;
+      const plantInstance = await getPlantsInstance({
+        type: landPlant.type,
+        data: {
+          both_time: landPlant.both_time,
+          current_solid_grade: land.current_solid_grade!,
+        },
+      });
+      const output = plantInstance.harvest();
+      console.log(output, "???output");
     }
   };
 

@@ -108,9 +108,11 @@ export abstract class Plants {
   }
 }
 
-export const getPlantsInstance = async (params: { data: ChildPlantsParams; type: "cabbage" }) => {
+export const getPlantsInstance = async (params: { data: ChildPlantsParams; type: PlantsType }) => {
   const module = await import(`./${params.type}.ts`);
   const PlantClass = module.default;
   const instance = new PlantClass(params.data);
   return instance as Cabbage;
 };
+
+export type PlantsType = "cabbage" | "potato";
