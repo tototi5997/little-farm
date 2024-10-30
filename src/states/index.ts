@@ -2,11 +2,13 @@ import { configureStore } from "@reduxjs/toolkit";
 import { useSelector, useDispatch } from "react-redux";
 import solidReducer from "./Solid/reducer";
 import packageReducer from "./Package/reducer";
+import eventsReducer from "./Events/reducer";
 
 const store = configureStore({
   reducer: {
     solid: solidReducer,
     package: packageReducer,
+    events: eventsReducer,
   },
 });
 

@@ -23,6 +23,7 @@ export interface PackageState {
   fertilizers: Fertilizer[];
   selected_tool: Tool;
   selected_seed?: Seed;
+  balance: number;
 }
 
 // 数据中读取背包数据
@@ -48,6 +49,7 @@ const initialState: PackageState = {
   fertilizers: [],
   selected_tool: "none",
   selected_seed: undefined,
+  balance: 100,
 };
 
 export const packageSlice = createSlice({
@@ -63,8 +65,11 @@ export const packageSlice = createSlice({
     setFertilizers: (state, action: PayloadAction<Fertilizer[]>) => {
       state.fertilizers = action.payload;
     },
+    setBalance: (state, action: PayloadAction<number>) => {
+      state.balance = action.payload;
+    },
   },
 });
 
-export const { setSelectedTool, setSeeds, setFertilizers } = packageSlice.actions;
+export const { setSelectedTool, setSeeds, setFertilizers, setBalance } = packageSlice.actions;
 export default packageSlice.reducer;

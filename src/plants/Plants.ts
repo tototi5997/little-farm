@@ -5,7 +5,7 @@ export type PlantsParams = {
   name: string;
   icon_name?: string;
   both_time: number;
-  growth_cycle: number;
+  growth_cycle: number; // 秒级
   need_solid_grade: number;
   current_solid_grade: number;
   basic_output: number;
@@ -76,34 +76,27 @@ export abstract class Plants {
     return output;
   }
 
-  // 获取当前植物的状态
-  getPlantsStataus() {
-    this.initPlantStatus();
-    return this.status;
-  }
-
   // 使用化肥
   useFertilizer() {}
 
   // 收获植物
-  harvest(): { output: number; seeds: number } | undefined {
-    // 当前是未发芽状态或者是发芽状态
-    if (this.status === PlantStatus.NOT_GERMINATED || this.status === PlantStatus.GERMINATING) {
-      console.log("植物未成熟，暂时无法收获");
-      return;
-    }
-
+  harvest(): { output: number; seeds: number; error?: string } {
     // 当前是成熟状态
     if (this.status === PlantStatus.MATURE) {
       const output = this.getOutput();
       const seeds = this.getRandomSeeds();
-      return { output, seeds };
+      return { output, seeds, error: undefined };
     }
 
     // 死亡状态
     if (this.status === PlantStatus.DEATH) {
       const seeds = this.getRandomSeeds();
-      return { output: 0, seeds };
+      return { output: 0, seeds, error: undefined };
+    }
+
+    // 当前是未发芽状态或者是发芽状态
+    else {
+      return { output: 0, seeds: 0, error: "植物未成熟，暂时无法收获" };
     }
   }
 }

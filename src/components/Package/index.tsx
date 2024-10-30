@@ -30,7 +30,7 @@ const Package = () => {
 
     return seeds.map((item) => {
       return Children.toArray(
-        <div className={c(s.package_item, s.not_last, "fbh fbjc fbac hand")} onClick={() => handleClickSeedItem(item)}>
+        <div className={c(s.package_item, "fbh fbjc fbac hand")} onClick={() => handleClickSeedItem(item)}>
           <Icon name={item.icon_name!} />
           <div>{item.num}</div>
         </div>

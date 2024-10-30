@@ -1,5 +1,6 @@
+import { PlantsType } from "@/plants/Plants";
 import { useAppDispatch, useAppState } from "..";
-import { Seed, setSeeds, setSelectedTool } from "./reducer";
+import { Seed, setBalance, setSeeds, setSelectedTool } from "./reducer";
 
 export const useSeeds = () => {
   const seeds = useAppState((state) => state.package.seeds);
@@ -9,7 +10,7 @@ export const useSeeds = () => {
     dispatch(setSelectedTool(seed));
   };
 
-  const updateSeeds = (seed: Seed) => {
+  const plantSeed = (seed: Seed) => {
     // 种子数量 - 1
     const newSeeds = seeds.map((item) => {
       if (item.type === seed.type)
@@ -23,7 +24,35 @@ export const useSeeds = () => {
     dispatch(setSeeds(newSeeds));
   };
 
-  return { seeds, selectSeed, updateSeeds };
+  const getNewSeeds = (seed: { type: PlantsType; number: number }) => {
+    const isExit = seeds.find((item) => item.type === seed.type);
+    if (isExit) {
+      const newSeeds = seeds.map((item) => {
+        if (item.type === seed.type)
+          return {
+            ...item,
+            num: item.num + seed.number,
+          };
+        return item;
+      });
+      console.log(newSeeds, '???')
+      dispatch(setSeeds(newSeeds));
+    } else {
+      dispatch(
+        setSeeds([
+          ...seeds,
+          {
+            type: seed.type,
+            num: seed.number,
+            name: seed.type,
+            is_seed: true,
+          },
+        ])
+      );
+    }
+  };
+
+  return { seeds, selectSeed, plantSeed, getNewSeeds };
 };
 
 export const useSelectedTool = () => {
@@ -48,4 +77,13 @@ export const useFertilizers = () => {
     dispatch(setSelectedTool(tool));
   };
   return { fertilizers, selectFertilizer };
+};
+
+export const useBalance = () => {
+  const balance = useAppState((state) => state.package.balance);
+  const dispatch = useAppDispatch();
+  const updateBalance = (balance: number) => {
+    dispatch(setBalance(balance));
+  };
+  return { balance, updateBalance };
 };

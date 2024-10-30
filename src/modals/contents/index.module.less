@@ -1,4 +1,38 @@
-.demo_modal {
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 12px;
+.store_modal {
+  height: 500px;
+  background-color: white;
+  padding: 10px;
+
+  .category_item {
+    width: 60px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    outline: 1px solid gray;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .active {
+    background-color: bisque;
+  }
+
+  .seeds_content,
+  .fertilizer_content,
+  .pet_content {
+    padding: 10px;
+    height: 290px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 270px);
+    column-gap: 20px;
+    row-gap: 10px;
+  }
+
+  .seeds_item {
+    height: 60px;
+    border-radius: 4px;
+    outline: 1px solid black;
+  }
 }

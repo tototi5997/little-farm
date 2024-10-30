@@ -3,6 +3,9 @@ import { getPlantsInstance, PlantStatus, PlantsType } from "@/plants/Plants";
 import { useSolidConfig } from "@/states/Solid/hook";
 import { useSeeds, useSelectedTool } from "@/states/Package/hook";
 import { Seed } from "@/states/Package/reducer";
+import { useEvents } from "@/states/Events/hook";
+import { RadioEventType } from "@/states/Events/reducer";
+import { debounce } from "lodash-es";
 import Icon from "../icon";
 import dayjs from "dayjs";
 import c from "classnames";
@@ -46,13 +49,13 @@ export type LandConfig = {
 const Soil = () => {
   const [landConfig, setLandConfig] = useState<LandConfig[]>([]);
 
-  const { seeds } = useSeeds();
+  const { seeds, plantSeed } = useSeeds();
 
   const { solidConfig, updateSolidConfig } = useSolidConfig();
 
   const { is_seed, is_hoe, selected_tool, selectNone } = useSelectedTool();
 
-  const { updateSeeds } = useSeeds();
+  const { addNewEvent } = useEvents();
 
   useEffect(() => {
     const initializeLandConfig = async () => {
@@ -97,79 +100,109 @@ const Soil = () => {
     };
   }, [solidConfig]);
 
-  const handleClickSolidBlock = async (land: LandConfig, index: number) => {
-    // 播种模式
-    if (land.status === SolidStatus.DEVELOPED && !land.plants && is_seed) {
-      const selected_seed = selected_tool as Seed;
-      const seed_num_in_package = seeds.find((seed) => seed.type === selected_seed.type)?.num;
+  const handleClickSolidBlock = debounce(
+    async (land: LandConfig, index: number) => {
+      // 播种模式
+      if (land.status === SolidStatus.DEVELOPED && !land.plants && is_seed) {
+        const selected_seed = selected_tool as Seed;
+        const seed_num_in_package = seeds.find((seed) => seed.type === selected_seed.type)?.num;
 
-      if (seed_num_in_package! <= 0) {
-        document.body.style.cursor = "auto";
-        return selectNone();
-      }
+        if (seed_num_in_package! <= 0) {
+          document.body.style.cursor = "auto";
+          return selectNone();
+        }
 
-      const newPlant = {
-        type: selected_seed?.type,
-        both_time: dayjs().unix(),
-      };
+        const newPlant = {
+          type: selected_seed?.type,
+          both_time: dayjs().unix(),
+        };
 
-      const initConfig = [...solidConfig];
-
-      initConfig[index] = {
-        ...initConfig[index],
-        plants: newPlant,
-      };
-
-      updateSolidConfig(initConfig);
-      updateSeeds(selected_seed);
-      // document.body.style.cursor = "auto";
-    }
-
-    // 铲子模式
-    if (is_hoe) {
-      // 空地
-      if (land.status === SolidStatus.UN_DEVELOPED) {
-        // 开发空地
         const initConfig = [...solidConfig];
+
         initConfig[index] = {
           ...initConfig[index],
-          status: SolidStatus.DEVELOPED,
+          plants: newPlant,
         };
+
         updateSolidConfig(initConfig);
+        plantSeed(selected_seed);
+        // document.body.style.cursor = "auto";
       }
 
-      // 植物
-      if (land.status === SolidStatus.DEVELOPED && land.plants) {
-        // 铲除植物
-        const initConfig = [...solidConfig];
-        initConfig[index] = {
-          ...initConfig[index],
-          plants: undefined,
-        };
-        updateSolidConfig(initConfig);
-      }
-    }
+      // 铲子模式
+      if (is_hoe) {
+        // 空地
+        if (land.status === SolidStatus.UN_DEVELOPED) {
+          // 开发空地
+          const initConfig = [...solidConfig];
+          initConfig[index] = {
+            ...initConfig[index],
+            status: SolidStatus.DEVELOPED,
+          };
+          updateSolidConfig(initConfig);
+        }
 
-    // 收获模式
-    if (!is_hoe && !is_seed && land.status === SolidStatus.DEVELOPED && land.plants) {
-      const landPlant = land.plants;
-      const plantInstance = await getPlantsInstance({
-        type: landPlant.type,
-        data: {
-          both_time: landPlant.both_time,
-          current_solid_grade: land.current_solid_grade!,
-        },
-      });
-      const output = plantInstance.harvest();
-      console.log(output, "???output");
-    }
-  };
+        // 植物
+        if (land.status === SolidStatus.DEVELOPED && land.plants) {
+          // 铲除植物
+          const initConfig = [...solidConfig];
+          initConfig[index] = {
+            ...initConfig[index],
+            plants: undefined,
+          };
+          updateSolidConfig(initConfig);
+        }
+      }
+
+      // 收获模式
+      if (!is_hoe && !is_seed && land.status === SolidStatus.DEVELOPED && land.plants) {
+        const landPlant = land.plants;
+        const plantInstance = await getPlantsInstance({
+          type: landPlant.type,
+          data: {
+            both_time: landPlant.both_time,
+            current_solid_grade: land.current_solid_grade!,
+          },
+        });
+
+        const output = plantInstance.harvest();
+
+        // 可以收获的阶段
+        if (plantInstance.status === PlantStatus.MATURE || plantInstance.status === PlantStatus.DEATH) {
+          // 更新土地信息
+          const initConfig = [...solidConfig];
+
+          initConfig[index] = {
+            ...initConfig[index],
+            plants: undefined,
+          };
+
+          updateSolidConfig(initConfig);
+
+          // 更新背包信息
+          // todo 存储收获的果实
+
+          addNewEvent({
+            type: RadioEventType.HARVEST,
+            content: `收获 ${plantInstance.name} * ${output?.output}, 种子 * ${output?.seeds} `,
+          });
+        } else {
+          addNewEvent({
+            type: RadioEventType.HARVEST,
+            content: `${output?.error}`,
+          });
+        }
+      }
+    },
+    1000,
+    { leading: true }
+  );
 
   const renderSolidBlock = () => {
     return landConfig.map((land: LandConfig, index) => {
       return Children.toArray(
         <div
-          className={c(s.solid_block, "fbv fbac fbjc", {
+          className={c(s.solid_block, "fbv fbac fbjc usn", {
             [s.un_developed]: land.status === SolidStatus.UN_DEVELOPED,
           })}
           onClick={() => handleClickSolidBlock(land, index)}

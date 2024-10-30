@@ -1,27 +1,27 @@
 import { ModalProps } from "antd";
-import DemoModal from "./contents/DemoModal";
+import StoreModal from "./contents/StoreModal";
 
 interface IModalMain {
   des?: string;
-  component: (props: any) => JSX.Element | null;
+  component: (props: unknown) => JSX.Element | null;
   extraProps?: Record<string, unknown>;
   noPadding?: boolean;
 }
 
 export type GlobalMoalType = IModalMain & ModalProps;
 
-export type ModalKey = "demo_modal";
+export type ModalKey = "store_modal";
 
 const modalMap = new Map<ModalKey, GlobalMoalType>([
   [
-    "demo_modal",
+    "store_modal",
     {
-      des: "show wallet list to change wallet",
-      component: DemoModal,
+      component: StoreModal,
       footer: null,
       noPadding: true,
       closable: false,
-      width: 460,
+      maskClosable: false,
+      width: 600,
     },
   ],
 ]);

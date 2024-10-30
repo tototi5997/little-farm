@@ -13,7 +13,7 @@ const initSolidConfig: Solid[] = [
   {
     id: 1,
     status: 1,
-    current_solid_grade: 0,
+    current_solid_grade: 1,
     plants: {
       type: "cabbage",
       both_time: dayjs("2024-10-28 16:00").unix(),
@@ -22,7 +22,7 @@ const initSolidConfig: Solid[] = [
   {
     id: 2,
     status: 1,
-    current_solid_grade: 0,
+    current_solid_grade: 1,
   },
   ...new Array(14).fill(0).map((_, index) => ({
     id: index + 2,
