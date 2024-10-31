@@ -1,7 +1,7 @@
 import { Children, useEffect, useState } from "react";
 import { getPlantsInstance, PlantStatus, PlantsType } from "@/plants/Plants";
-import { useSolidConfig } from "@/states/Solid/hook";
-import { useSeeds, useSelectedTool } from "@/states/Package/hook";
+import { useSoilConfig } from "@/states/Soil/hook";
+import { useHarvest, useSeeds, useSelectedTool } from "@/states/Package/hook";
 import { Seed } from "@/states/Package/reducer";
 import { useEvents } from "@/states/Events/hook";
 import { RadioEventType } from "@/states/Events/reducer";
@@ -11,7 +11,7 @@ import dayjs from "dayjs";
 import c from "classnames";
 import s from "./index.module.less";
 
-export enum SolidStatus {
+export enum SoilStatus {
   UN_DEVELOPED,
   DEVELOPED,
 }
@@ -23,9 +23,9 @@ export const PlantsStatusMap = {
   [PlantStatus.DEATH]: "枯萎",
 };
 
-export type Solid = {
+export type Soil = {
   id: number;
-  status: SolidStatus;
+  status: SoilStatus;
   current_solid_grade?: number;
   plants?: {
     type: PlantsType;
@@ -35,7 +35,7 @@ export type Solid = {
 
 export type LandConfig = {
   id: number;
-  status: SolidStatus;
+  status: SoilStatus;
   current_solid_grade?: number;
   plants?: {
     type: PlantsType;
@@ -51,17 +51,19 @@ const Soil = () => {
 
   const { seeds, plantSeed } = useSeeds();
 
-  const { solidConfig, updateSolidConfig } = useSolidConfig();
+  const { solidConfig, updateSoilConfig } = useSoilConfig();
 
   const { is_seed, is_hoe, selected_tool, selectNone } = useSelectedTool();
+
+  const { getHarvest } = useHarvest();
 
   const { addNewEvent } = useEvents();
 
   useEffect(() => {
     const initializeLandConfig = async () => {
       const initLandConfig = await Promise.all(
-        solidConfig.map(async (sol: Solid) => {
-          if (sol.status === SolidStatus.DEVELOPED && sol.plants) {
+        solidConfig.map(async (sol: Soil) => {
+          if (sol.status === SoilStatus.DEVELOPED && sol.plants) {
             const plantInstance = await getPlantsInstance({
               type: sol.plants.type,
               data: {
@@ -100,10 +102,10 @@ const Soil = () => {
     };
   }, [solidConfig]);
 
-  const handleClickSolidBlock = debounce(
+  const handleClickSoilBlock = debounce(
     async (land: LandConfig, index: number) => {
       // 播种模式
-      if (land.status === SolidStatus.DEVELOPED && !land.plants && is_seed) {
+      if (land.status === SoilStatus.DEVELOPED && !land.plants && is_seed) {
         const selected_seed = selected_tool as Seed;
         const seed_num_in_package = seeds.find((seed) => seed.type === selected_seed.type)?.num;
 
@@ -124,7 +126,7 @@ const Soil = () => {
           plants: newPlant,
         };
 
-        updateSolidConfig(initConfig);
+        updateSoilConfig(initConfig);
         plantSeed(selected_seed);
         // document.body.style.cursor = "auto";
       }
@@ -132,30 +134,30 @@ const Soil = () => {
       // 铲子模式
       if (is_hoe) {
         // 空地
-        if (land.status === SolidStatus.UN_DEVELOPED) {
+        if (land.status === SoilStatus.UN_DEVELOPED) {
           // 开发空地
           const initConfig = [...solidConfig];
           initConfig[index] = {
             ...initConfig[index],
-            status: SolidStatus.DEVELOPED,
+            status: SoilStatus.DEVELOPED,
           };
-          updateSolidConfig(initConfig);
+          updateSoilConfig(initConfig);
         }
 
         // 植物
-        if (land.status === SolidStatus.DEVELOPED && land.plants) {
+        if (land.status === SoilStatus.DEVELOPED && land.plants) {
           // 铲除植物
           const initConfig = [...solidConfig];
           initConfig[index] = {
             ...initConfig[index],
             plants: undefined,
           };
-          updateSolidConfig(initConfig);
+          updateSoilConfig(initConfig);
         }
       }
 
       // 收获模式
-      if (!is_hoe && !is_seed && land.status === SolidStatus.DEVELOPED && land.plants) {
+      if (!is_hoe && !is_seed && land.status === SoilStatus.DEVELOPED && land.plants) {
         const landPlant = land.plants;
         const plantInstance = await getPlantsInstance({
           type: landPlant.type,
@@ -177,10 +179,13 @@ const Soil = () => {
             plants: undefined,
           };
 
-          updateSolidConfig(initConfig);
+          updateSoilConfig(initConfig);
 
-          // 更新背包信息
-          // todo 存储收获的果实
+          // 更新收获植物
+          if (output.output) {
+            getHarvest({ type: landPlant.type, num: output.output, name: landPlant.name });
+          }
+          // todo 更新收获的植物种子
 
           addNewEvent({
             type: RadioEventType.HARVEST,
@@ -198,14 +203,14 @@ const Soil = () => {
     { leading: true }
   );
 
-  const renderSolidBlock = () => {
+  const renderSoilBlock = () => {
     return landConfig.map((land: LandConfig, index) => {
       return Children.toArray(
         <div
           className={c(s.solid_block, "fbv fbac fbjc usn", {
-            [s.un_developed]: land.status === SolidStatus.UN_DEVELOPED,
+            [s.un_developed]: land.status === SoilStatus.UN_DEVELOPED,
           })}
-          onClick={() => handleClickSolidBlock(land, index)}
+          onClick={() => handleClickSoilBlock(land, index)}
         >
           <Icon name={land?.plants?.icon_name as string} />
           <div>{land?.plants && PlantsStatusMap?.[land?.plants.status]}</div>
@@ -214,7 +219,7 @@ const Soil = () => {
     });
   };
 
-  return <div className={c(s.soil)}>{renderSolidBlock()}</div>;
+  return <div className={c(s.soil)}>{renderSoilBlock()}</div>;
 };
 
 export default Soil;

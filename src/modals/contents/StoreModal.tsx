@@ -6,9 +6,9 @@ import { Button, InputNumber, message } from "antd";
 import { useBalance, useSeeds } from "@/states/Package/hook";
 import { useEvents } from "@/states/Events/hook";
 import { RadioEventType } from "@/states/Events/reducer";
+import { PlantsType } from "@/plants/Plants";
 import s from "./index.module.less";
 import c from "classnames";
-import { PlantsType } from "@/plants/Plants";
 
 export type GoodsType = "seed" | "fertilizer" | "pet";
 
@@ -17,6 +17,12 @@ export type BillType = {
   name: string;
   price: number;
   num: number;
+};
+
+export type GoodsTypeConfig = {
+  key: string;
+  name: string;
+  price: number;
 };
 
 const StoreModal = () => {
@@ -37,7 +43,7 @@ const StoreModal = () => {
     { label: "宠物", key: "pet" },
   ];
 
-  const changeBill = (good: any, val: number) => {
+  const changeBill = (good: GoodsTypeConfig, val: number) => {
     const index = bills.findIndex((bill) => bill.key === good.key);
     if (index !== -1) {
       const newBills = [...bills];
@@ -50,23 +56,20 @@ const StoreModal = () => {
 
   const handleFinishBills = () => {
     const totoalPay = bills.reduce((a, b) => a + b.price * b.num, 0);
+    const eventInfo = bills.reduce((a, b) => a + `${b.name} * ${b.num} `, "你获得了：");
+
     if (balance < totoalPay) return message.error("余额不足");
 
-    modal?.hide();
     const resetBalance = balance - totoalPay;
     updateBalance(resetBalance);
+    modal?.hide();
 
-    const eventInfo = bills.reduce((a, b) => a + `${b.name} * ${b.num} `, "你获得了：");
     addNewEvent({
       type: RadioEventType.TOOLTIP,
       content: eventInfo,
     });
-
     // 更新背包中的种子
-    bills.forEach((bill) => {
-      getNewSeeds({ type: bill.key as PlantsType, number: bill.num });
-    });
-
+    getNewSeeds(bills.map((bill) => ({ type: bill.key as PlantsType, number: bill.num, name: bill.name })));
     setBills([]);
   };
 

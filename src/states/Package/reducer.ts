@@ -18,8 +18,16 @@ export type Fertilizer = {
 
 export type Tool = "hoe" | Seed | "fertilizer" | "none";
 
+export type TypeHarvest = {
+  type: PlantsType;
+  name: string;
+  num: number;
+  is_harvest: boolean;
+};
+
 export interface PackageState {
   seeds: Seed[];
+  harvest: TypeHarvest[];
   fertilizers: Fertilizer[];
   selected_tool: Tool;
   selected_seed?: Seed;
@@ -46,6 +54,7 @@ const seedsConfig: Seed[] = [
 
 const initialState: PackageState = {
   seeds: seedsConfig,
+  harvest: [],
   fertilizers: [],
   selected_tool: "none",
   selected_seed: undefined,
@@ -62,6 +71,9 @@ export const packageSlice = createSlice({
     setSeeds: (state, action: PayloadAction<Seed[]>) => {
       state.seeds = action.payload;
     },
+    setHarvest: (state, action: PayloadAction<TypeHarvest[]>) => {
+      state.harvest = action.payload;
+    },
     setFertilizers: (state, action: PayloadAction<Fertilizer[]>) => {
       state.fertilizers = action.payload;
     },
@@ -71,5 +83,5 @@ export const packageSlice = createSlice({
   },
 });
 
-export const { setSelectedTool, setSeeds, setFertilizers, setBalance } = packageSlice.actions;
+export const { setSelectedTool, setSeeds, setFertilizers, setBalance, setHarvest } = packageSlice.actions;
 export default packageSlice.reducer;

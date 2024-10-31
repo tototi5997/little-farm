@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useSelector, useDispatch } from "react-redux";
-import solidReducer from "./Solid/reducer";
+import solidReducer from "./Soil/reducer";
 import packageReducer from "./Package/reducer";
 import eventsReducer from "./Events/reducer";
 

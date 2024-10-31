@@ -1,15 +1,15 @@
-import { Solid } from "@/components/Soil";
+import { Soil } from "@/components/Soil";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import dayjs from "dayjs";
 
-export interface SolidState {
-  solid_config: Solid[];
+export interface SoilState {
+  solid_config: Soil[];
   is_owner: boolean;
-  solid_config_neighbor?: Solid[];
+  solid_config_neighbor?: Soil[];
 }
 
 // 数据库中读取的数据
-const initSolidConfig: Solid[] = [
+const initSoilConfig: Soil[] = [
   {
     id: 1,
     status: 1,
@@ -30,8 +30,8 @@ const initSolidConfig: Solid[] = [
   })),
 ];
 
-const initialState: SolidState = {
-  solid_config: initSolidConfig,
+const initialState: SoilState = {
+  solid_config: initSoilConfig,
   is_owner: true,
 };
 
@@ -39,10 +39,10 @@ const solidSlice = createSlice({
   name: "solid",
   initialState,
   reducers: {
-    setSolidConfig(state, action: PayloadAction<Solid[]>) {
+    setSoilConfig(state, action: PayloadAction<Soil[]>) {
       state.solid_config = action.payload;
     },
-    setSolidConfigNeighbor(state, action: PayloadAction<Solid[]>) {
+    setSoilConfigNeighbor(state, action: PayloadAction<Soil[]>) {
       state.solid_config_neighbor = action.payload;
     },
     setIsOwner(state, action: PayloadAction<boolean>) {
@@ -51,5 +51,5 @@ const solidSlice = createSlice({
   },
 });
 
-export const { setSolidConfig, setIsOwner, setSolidConfigNeighbor } = solidSlice.actions;
+export const { setSoilConfig, setIsOwner, setSoilConfigNeighbor } = solidSlice.actions;
 export default solidSlice.reducer;

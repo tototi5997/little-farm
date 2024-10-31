@@ -1,17 +1,17 @@
 import { useAppDispatch, useAppState } from "..";
-import { setSolidConfig } from "./reducer";
-import { Solid } from "@/components/Soil";
+import { setSoilConfig } from "./reducer";
+import { Soil } from "@/components/Soil";
 
-export const useSolidConfig = () => {
+export const useSoilConfig = () => {
   const solidConfig = useAppState((state) => state.solid.solid_config);
   const is_owner = useAppState((state) => state.solid.is_owner);
   const dispatch = useAppDispatch();
 
-  const updateSolidConfig = (config: Solid[]) => {
+  const updateSoilConfig = (config: Soil[]) => {
     if (is_owner) {
-      dispatch(setSolidConfig(config));
+      dispatch(setSoilConfig(config));
     }
   };
 
-  return { solidConfig, updateSolidConfig };
+  return { solidConfig, updateSoilConfig };
 };
