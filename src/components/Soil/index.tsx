@@ -1,10 +1,11 @@
 import { Children, useEffect, useState } from "react";
 import { getPlantsInstance, PlantStatus, PlantsType } from "@/plants/Plants";
 import { useSoilConfig } from "@/states/Soil/hook";
-import { useHarvest, useSeeds, useSelectedTool } from "@/states/Package/hook";
+import { useBalance, useHarvest, useSeeds, useSelectedTool } from "@/states/Package/hook";
 import { Seed } from "@/states/Package/reducer";
 import { useEvents } from "@/states/Events/hook";
 import { RadioEventType } from "@/states/Events/reducer";
+import { soil_develop_cost, soil_upgrade_cost } from "@/constants";
 import { debounce } from "lodash-es";
 import Icon from "../icon";
 import dayjs from "dayjs";
@@ -49,11 +50,13 @@ export type LandConfig = {
 const Soil = () => {
   const [landConfig, setLandConfig] = useState<LandConfig[]>([]);
 
-  const { seeds, plantSeed } = useSeeds();
+  const { seeds, plantSeed, getNewSeeds } = useSeeds();
 
-  const { solidConfig, updateSoilConfig } = useSoilConfig();
+  const { solidConfig, is_owner, updateSoilConfig } = useSoilConfig();
 
   const { is_seed, is_hoe, selected_tool, selectNone } = useSelectedTool();
+
+  const { balance, costBalance } = useBalance();
 
   const { getHarvest } = useHarvest();
 
@@ -102,101 +105,157 @@ const Soil = () => {
     };
   }, [solidConfig]);
 
-  const handleClickSoilBlock = debounce(
-    async (land: LandConfig, index: number) => {
-      // 播种模式
-      if (land.status === SoilStatus.DEVELOPED && !land.plants && is_seed) {
-        const selected_seed = selected_tool as Seed;
-        const seed_num_in_package = seeds.find((seed) => seed.type === selected_seed.type)?.num;
+  // 播种
+  const plantAction = (soilIndex: number) => {
+    const selected_seed = selected_tool as Seed;
+    const seed_num_in_package = seeds.find((seed) => seed.type === selected_seed.type)?.num;
 
-        if (seed_num_in_package! <= 0) {
-          document.body.style.cursor = "auto";
-          return selectNone();
-        }
+    if (seed_num_in_package! <= 0) {
+      document.body.style.cursor = "auto";
+      return selectNone();
+    }
 
-        const newPlant = {
-          type: selected_seed?.type,
-          both_time: dayjs().unix(),
-        };
+    const newPlant = {
+      type: selected_seed?.type,
+      both_time: dayjs().unix(),
+    };
 
-        const initConfig = [...solidConfig];
+    const initConfig = [...solidConfig];
 
-        initConfig[index] = {
-          ...initConfig[index],
-          plants: newPlant,
-        };
+    initConfig[soilIndex] = {
+      ...initConfig[soilIndex],
+      plants: newPlant,
+    };
 
-        updateSoilConfig(initConfig);
-        plantSeed(selected_seed);
-        // document.body.style.cursor = "auto";
-      }
+    updateSoilConfig(initConfig);
+    plantSeed(selected_seed);
+  };
 
-      // 铲子模式
-      if (is_hoe) {
-        // 空地
-        if (land.status === SoilStatus.UN_DEVELOPED) {
-          // 开发空地
-          const initConfig = [...solidConfig];
-          initConfig[index] = {
-            ...initConfig[index],
-            status: SoilStatus.DEVELOPED,
-          };
-          updateSoilConfig(initConfig);
-        }
+  // 使用铲子: 铲除/开垦/升级土地
+  const hoeAction = (land: LandConfig, index: number) => {
+    // 空地
+    if (land.status === SoilStatus.UN_DEVELOPED) {
+      // 计算所需金额
+      const develop_fee = soil_develop_cost[index];
 
-        // 植物
-        if (land.status === SoilStatus.DEVELOPED && land.plants) {
-          // 铲除植物
-          const initConfig = [...solidConfig];
-          initConfig[index] = {
-            ...initConfig[index],
-            plants: undefined,
-          };
-          updateSoilConfig(initConfig);
-        }
-      }
-
-      // 收获模式
-      if (!is_hoe && !is_seed && land.status === SoilStatus.DEVELOPED && land.plants) {
-        const landPlant = land.plants;
-        const plantInstance = await getPlantsInstance({
-          type: landPlant.type,
-          data: {
-            both_time: landPlant.both_time,
-            current_solid_grade: land.current_solid_grade!,
-          },
+      if (develop_fee > balance) {
+        return addNewEvent({
+          type: RadioEventType.HARVEST,
+          content: "你的余额不足，无法开发空地",
         });
+      }
 
-        const output = plantInstance.harvest();
+      // 开发空地
+      const initConfig = [...solidConfig];
+      initConfig[index] = {
+        ...initConfig[index],
+        status: SoilStatus.DEVELOPED,
+        current_solid_grade: 1,
+      };
 
-        // 可以收获的阶段
-        if (plantInstance.status === PlantStatus.MATURE || plantInstance.status === PlantStatus.DEATH) {
-          // 更新土地信息
-          const initConfig = [...solidConfig];
+      updateSoilConfig(initConfig);
+      costBalance(develop_fee);
+    }
 
-          initConfig[index] = {
-            ...initConfig[index],
-            plants: undefined,
-          };
+    // 升级土地
+    if (land.status === SoilStatus.DEVELOPED && !land.plants) {
+      const upgrade_fee = soil_upgrade_cost[index];
 
-          updateSoilConfig(initConfig);
+      if (upgrade_fee > balance) {
+        return addNewEvent({
+          type: RadioEventType.HARVEST,
+          content: "你的余额不足，无法升级土地",
+        });
+      }
 
-          // 更新收获植物
-          if (output.output) {
-            getHarvest({ type: landPlant.type, num: output.output, name: landPlant.name });
-          }
-          // todo 更新收获的植物种子
+      const initConfig = [...solidConfig];
+      initConfig[index] = {
+        ...initConfig[index],
+        current_solid_grade: initConfig[index].current_solid_grade! + 1,
+      };
 
-          addNewEvent({
-            type: RadioEventType.HARVEST,
-            content: `收获 ${plantInstance.name} * ${output?.output}, 种子 * ${output?.seeds} `,
-          });
-        } else {
-          addNewEvent({
-            type: RadioEventType.HARVEST,
-            content: `${output?.error}`,
-          });
-        }
+      updateSoilConfig(initConfig);
+      costBalance(upgrade_fee);
+    }
+
+    // 植物
+    if (land.status === SoilStatus.DEVELOPED && land.plants) {
+      // 铲除植物
+      const initConfig = [...solidConfig];
+      initConfig[index] = {
+        ...initConfig[index],
+        plants: undefined,
+      };
+      updateSoilConfig(initConfig);
+    }
+  };
+
+  const harvestAction = async (land: LandConfig, index: number) => {
+    const landPlant = land.plants!;
+    const plantInstance = await getPlantsInstance({
+      type: landPlant.type,
+      data: {
+        both_time: landPlant.both_time,
+        current_solid_grade: land.current_solid_grade!,
+      },
+    });
+
+    const output = plantInstance.harvest();
+
+    // 可以收获的阶段
+    if (plantInstance.status === PlantStatus.MATURE || plantInstance.status === PlantStatus.DEATH) {
+      // 更新土地信息
+      const initConfig = [...solidConfig];
+
+      initConfig[index] = {
+        ...initConfig[index],
+        plants: undefined,
+      };
+
+      updateSoilConfig(initConfig);
+
+      // 更新收获植物
+      if (output.output) {
+        getHarvest({ type: landPlant.type, num: output.output, name: landPlant.name });
+      }
+
+      // 更新收获的种子数
+      if (output.seeds) {
+        getNewSeeds([{ type: landPlant.type, num: output.seeds, name: landPlant.name }]);
+      }
+
+      addNewEvent({
+        type: RadioEventType.HARVEST,
+        content: `收获 ${plantInstance.name} * ${output?.output}, 种子 * ${output?.seeds} `,
+      });
+    } else {
+      addNewEvent({
+        type: RadioEventType.HARVEST,
+        content: `${output?.error}`,
+      });
+    }
+  };
+
+  const harvestStealAction = (land: LandConfig, index: number) => {
+    // 判断当前土地被偷次数是否超过5次，超过5次则不能偷
+    // 小于5次，偷取随机个数的果实
+    // 更新自己背包中的收获数据
+    // 更新目标土地的次数，被偷次数+1，来访记录添加偷取记录
+  };
+
+  const handleClickSoilBlock = debounce(
+    (land: LandConfig, index: number) => {
+      if (is_owner) {
+        // 播种模式
+        if (land.status === SoilStatus.DEVELOPED && !land.plants && is_seed) return plantAction(index);
+
+        // 铲子模式
+        if (is_hoe) return hoeAction(land, index);
+
+        // 收获模式
+        if (!is_hoe && !is_seed && land.status === SoilStatus.DEVELOPED && land.plants) return harvestAction(land, index);
+      } else {
+        if (!is_hoe && !is_seed && land.status === SoilStatus.DEVELOPED && land.plants) return harvestStealAction(land, index);
       }
     },
     1000,

@@ -73,3 +73,9 @@ export const seeds_sell: SellSeed[] = [
   //   basic_output: 10,
   // },
 ];
+
+// 开拓土壤花费
+export const soil_develop_cost = [0, 0, 100, 200, 300, 300, 300, 300, 400, 400, 400, 400, 500, 500, 500, 500];
+
+// 升级土地花费
+export const soil_upgrade_cost = [0, 500, 500, 500, 1000, 1000, 1000, 1000, 2000, 2000, 2000, 2000, 4000, 4000, 4000];

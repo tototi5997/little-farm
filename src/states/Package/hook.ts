@@ -28,7 +28,7 @@ export const useSeeds = () => {
   };
 
   // 收获新的种子
-  const getNewSeeds = (receivedSeeds: { type: PlantsType; number: number; name: string }[]) => {
+  const getNewSeeds = (receivedSeeds: { type: PlantsType; num: number; name: string }[]) => {
     // 遍历目前的种子
     // 如果种子类型和收到的种子类型相同，则数量加上收到的数量
     // 如果种子类型和收到的种子类型不相同，则是新的种子
@@ -38,13 +38,13 @@ export const useSeeds = () => {
     receivedSeeds.forEach((n) => {
       const received = copySeeds.find((r) => r.type === n.type);
       if (received) {
-        received.num += n.number;
+        received.num += n.num;
       } else {
         seedsNewReceived.push({
           name: n.name,
           type: n.type,
           icon_name: `icon-${n.type}`,
-          num: n.number,
+          num: n.num,
           is_seed: true,
         });
       }
@@ -114,8 +114,17 @@ export const useFertilizers = () => {
 export const useBalance = () => {
   const balance = useAppState((state) => state.package.balance);
   const dispatch = useAppDispatch();
+
   const updateBalance = (balance: number) => {
     dispatch(setBalance(balance));
   };
-  return { balance, updateBalance };
+
+  const costBalance = (cost: number) => {
+    if (balance >= cost) {
+      const newBalance = balance - cost;
+      dispatch(setBalance(newBalance));
+    }
+  };
+
+  return { balance, costBalance, updateBalance };
 };

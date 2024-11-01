@@ -48,6 +48,7 @@ const Package = () => {
     };
 
     return seeds.map((item) => {
+      if (item.num === 0) return null;
       return Children.toArray(
         <div className={c(s.package_item, "fbh fbjc fbac hand")} onClick={() => handleClickSeedItem(item)}>
           <Icon name={item.icon_name!} />

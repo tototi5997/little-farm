@@ -68,13 +68,14 @@ const StoreModal = () => {
       type: RadioEventType.TOOLTIP,
       content: eventInfo,
     });
+
     // 更新背包中的种子
-    getNewSeeds(bills.map((bill) => ({ type: bill.key as PlantsType, number: bill.num, name: bill.name })));
+    getNewSeeds(bills.map((bill) => ({ type: bill.key as PlantsType, num: bill.num, name: bill.name })));
     setBills([]);
   };
 
   return (
-    <div className={c(s.store_modal)}>
+    <div className={c(s.store_modal, "relative")}>
       <div className="fbh fbjsb fbac">
         <div>商店</div>
         <IconButton name="close" onClick={() => modal?.hide()} />

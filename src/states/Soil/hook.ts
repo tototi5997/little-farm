@@ -13,5 +13,5 @@ export const useSoilConfig = () => {
     }
   };
 
-  return { solidConfig, updateSoilConfig };
+  return { solidConfig, is_owner, updateSoilConfig };
 };
