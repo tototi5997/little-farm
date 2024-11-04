@@ -1,40 +1,46 @@
+import { PlantsType } from "@/plants/Plants";
+
 export type SellSeed = {
-  key: string; // 对应 type
+  key: PlantsType; // 对应 type
   name: string;
   price: number;
   icon_name: string;
   growth_cycle: number; // 秒级
   need_solid_grade: number;
   basic_output: number;
+  sell_price: number;
 };
 
 export const seeds_sell: SellSeed[] = [
   {
-    name: "白菜种子",
+    name: "白菜",
     key: "cabbage",
     price: 0,
     icon_name: "icon-cabbage",
     growth_cycle: 10,
     need_solid_grade: 1,
     basic_output: 10,
+    sell_price: 20,
   },
   {
-    name: "土豆种子",
+    name: "土豆",
     key: "potato",
     price: 10,
     icon_name: "icon-potato",
     growth_cycle: 10,
     need_solid_grade: 1,
     basic_output: 10,
+    sell_price: 20,
   },
   {
-    name: "小麦种子",
+    name: "小麦",
     key: "wheat",
     price: 12,
     icon_name: "icon-wheat",
     growth_cycle: 10,
     need_solid_grade: 1,
     basic_output: 10,
+    sell_price: 22,
   },
   // {
   //   name: "黄瓜种子",

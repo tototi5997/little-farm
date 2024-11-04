@@ -4,6 +4,7 @@ export enum RadioEventType {
   TOOLTIP,
   HARVEST,
   STEAL,
+  SELL,
 }
 
 export type RadioEvent = {

@@ -52,9 +52,25 @@ const seedsConfig: Seed[] = [
   },
 ];
 
+// 读取收获数据
+const harvsetConfig: TypeHarvest[] = [
+  {
+    name: "白菜",
+    type: "cabbage",
+    num: 10,
+    is_harvest: true,
+  },
+  {
+    name: "土豆",
+    type: "potato",
+    num: 10,
+    is_harvest: true,
+  },
+];
+
 const initialState: PackageState = {
   seeds: seedsConfig,
-  harvest: [],
+  harvest: harvsetConfig,
   fertilizers: [],
   selected_tool: "none",
   selected_seed: undefined,

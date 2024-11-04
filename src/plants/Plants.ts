@@ -108,4 +108,4 @@ export const getPlantsInstance = async (params: { data: ChildPlantsParams; type:
   return instance as Cabbage;
 };
 
-export type PlantsType = "cabbage" | "potato";
+export type PlantsType = "cabbage" | "potato" | "wheat";

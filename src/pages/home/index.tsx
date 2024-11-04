@@ -13,6 +13,10 @@ const Home = () => {
     modal?.show("store_modal");
   };
 
+  const handleClickSell = () => {
+    modal?.show("sell_modal");
+  };
+
   return (
     <div className={c(s.home, "relative fbv fbac fbjc")}>
       <Package />
@@ -20,7 +24,7 @@ const Home = () => {
       <Soil />
       <div className={c(s.npc_content, "fbh fbac gap-20")}>
         <NpcBlock iconName="icon-store" label="商店" onClick={handleClickStore} />
-        <NpcBlock iconName="icon-sell" label="售卖" onClick={handleClickStore} />
+        <NpcBlock iconName="icon-sell" label="售卖" onClick={handleClickSell} />
       </div>
     </div>
   );

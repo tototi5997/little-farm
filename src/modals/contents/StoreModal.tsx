@@ -101,13 +101,13 @@ const StoreModal = () => {
               return Children.toArray(
                 <div className={c(s.seeds_item, "p-10 fbh fbac")}>
                   <div>
-                    <div>{seed.name}</div>
+                    <div>{seed.name}种子</div>
                     <div className="text-[12px]">价格: {seed.price}</div>
                   </div>
                   <div className="fbh ml-auto fbac gap-10">
                     <div>购买数量:</div>
                     <InputNumber
-                      style={{ width: 50, height: 30 }}
+                      style={{ width: 70, height: 30 }}
                       defaultValue={exit_seed?.num || 0}
                       min={0}
                       max={99}

@@ -83,7 +83,21 @@ export const useHarvest = () => {
     dispatch(setHarvest(copyHarvest));
   };
 
-  return { harvest, getHarvest };
+  // 出售植物
+  const sellHarvests = (harvestSelled: TypeHarvest[]) => {
+    const copyHarvest = cloneDeep(harvest);
+
+    harvestSelled.forEach((h) => {
+      const index = copyHarvest.findIndex((c) => c.type === h.type);
+      if (index !== -1) {
+        copyHarvest[index].num -= h.num;
+      }
+    });
+
+    dispatch(setHarvest(copyHarvest));
+  };
+
+  return { harvest, getHarvest, sellHarvests };
 };
 
 // 选择工具
