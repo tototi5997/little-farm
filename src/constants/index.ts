@@ -20,7 +20,7 @@ export const seeds_sell: SellSeed[] = [
     growth_cycle: 10,
     need_solid_grade: 1,
     basic_output: 10,
-    sell_price: 20,
+    sell_price: 5,
   },
   {
     name: "土豆",
@@ -30,7 +30,7 @@ export const seeds_sell: SellSeed[] = [
     growth_cycle: 10,
     need_solid_grade: 1,
     basic_output: 10,
-    sell_price: 20,
+    sell_price: 5,
   },
   {
     name: "小麦",
@@ -40,7 +40,7 @@ export const seeds_sell: SellSeed[] = [
     growth_cycle: 10,
     need_solid_grade: 1,
     basic_output: 10,
-    sell_price: 22,
+    sell_price: 6,
   },
   // {
   //   name: "黄瓜种子",

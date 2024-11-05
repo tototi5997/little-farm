@@ -2,7 +2,7 @@ import { Children, useState } from "react";
 import Icon from "../icon";
 import SeedsPointer from "@/assets/seed.png";
 import HoePointer from "@/assets/hoe.png";
-import { useHarvest, useSeeds, useSelectedTool } from "@/states/Package/hook";
+import { useBalance, useHarvest, useSeeds, useSelectedTool } from "@/states/Package/hook";
 import { Seed } from "@/states/Package/reducer";
 import c from "classnames";
 import s from "./index.module.less";
@@ -26,6 +26,8 @@ const Package = () => {
   const { seeds, selectSeed } = useSeeds();
 
   const { harvest } = useHarvest();
+
+  const { balance } = useBalance();
 
   const [activeTab, setActiveTabs] = useState<"seed_tab" | "harvest_tab" | "pet_tab">("seed_tab");
 
@@ -59,20 +61,21 @@ const Package = () => {
   };
 
   const renderHarvest = () => {
-    return harvest.map((h) =>
-      Children.toArray(
+    return harvest.map((h) => {
+      if (h.num === 0) return null;
+      return Children.toArray(
         <div className={c(s.package_item, "fbv fbjc fbac hand")}>
           <Icon name={`icon-${h.type}`} />
           <div className="text-[12px]">
             {h.name} * {h.num}
           </div>
         </div>
-      )
-    );
+      );
+    });
   };
 
   return (
-    <div className={c(s.package, "fbh fbjsb")}>
+    <div className={c(s.package, "fbh fbjsb fbac")}>
       <div className={c(s.package_tabs, "absolute fbv gap-2")}>
         {packageTabs.map((tab) =>
           Children.toArray(
@@ -86,6 +89,8 @@ const Package = () => {
       {activeTab === "seed_tab" && <div className={c("fbh", s.seeds_area)}>{renderSeeds()}</div>}
       {activeTab === "harvest_tab" && <div className={c("fbh", s.seeds_area)}>{renderHarvest()}</div>}
       {activeTab === "pet_tab" && <div className={c("fbh", s.seeds_area)}></div>}
+
+      <div>余额: {balance}</div>
 
       <div className="fbh">
         <div className={c(s.hoe)} onClick={handleClickHoe}></div>

@@ -39,7 +39,7 @@ const SellModal = () => {
   const { addNewEvent } = useEvents();
 
   const specilRatio = 2;
-  const randomPair = generateDeterministicPair(sellGoods.length, "useridxxx", new Date());
+  const randomPair = generateDeterministicPair(sellGoods.length, "inputuseridxxx", new Date());
   const [specilGoods, restList] = selectPairFromList(randomPair, seeds_sell) as SellGoodType[][];
 
   const handleChangeBills = (good: SellGoodType, val: number) => {
