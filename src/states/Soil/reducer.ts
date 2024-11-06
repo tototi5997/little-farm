@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 export interface SoilState {
   solid_config: Soil[];
   is_owner: boolean;
-  solid_config_neighbor?: Soil[];
+  solid_config_neighbor: Soil[];
 }
 
 // 数据库中读取的数据
@@ -33,6 +33,7 @@ const initSoilConfig: Soil[] = [
 const initialState: SoilState = {
   solid_config: initSoilConfig,
   is_owner: true,
+  solid_config_neighbor: [],
 };
 
 const solidSlice = createSlice({

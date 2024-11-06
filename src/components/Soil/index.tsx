@@ -7,6 +7,7 @@ import { useEvents } from "@/states/Events/hook";
 import { RadioEventType } from "@/states/Events/reducer";
 import { soil_develop_cost, soil_upgrade_cost } from "@/constants";
 import { debounce } from "lodash-es";
+import { useFarm } from "@/states/Account/hook";
 import Icon from "../icon";
 import dayjs from "dayjs";
 import c from "classnames";
@@ -52,11 +53,15 @@ const Soil = () => {
 
   const { seeds, plantSeed, getNewSeeds } = useSeeds();
 
-  const { solidConfig, is_owner, updateSoilConfig } = useSoilConfig();
+  const { solidConfig, solidConfigNeighbor, is_owner, updateSoilConfig } = useSoilConfig();
+
+  const currentSolidConfig = is_owner ? solidConfig : solidConfigNeighbor;
 
   const { is_seed, is_hoe, selected_tool, selectNone } = useSelectedTool();
 
   const { balance, costBalance } = useBalance();
+
+  const { currentFarm, backToMyFarm } = useFarm();
 
   const { getHarvest } = useHarvest();
 
@@ -65,7 +70,7 @@ const Soil = () => {
   useEffect(() => {
     const initializeLandConfig = async () => {
       const initLandConfig = await Promise.all(
-        solidConfig.map(async (sol: Soil) => {
+        currentSolidConfig.map(async (sol: Soil) => {
           if (sol.status === SoilStatus.DEVELOPED && sol.plants) {
             const plantInstance = await getPlantsInstance({
               type: sol.plants.type,
@@ -103,7 +108,7 @@ const Soil = () => {
     return () => {
       clearInterval(updateTimer);
     };
-  }, [solidConfig]);
+  }, [currentSolidConfig]);
 
   // 播种
   const plantAction = (soilIndex: number) => {
@@ -278,7 +283,17 @@ const Soil = () => {
     });
   };
 
-  return <div className={c(s.soil)}>{renderSoilBlock()}</div>;
+  return (
+    <div className="fbv fbac">
+      <div>{currentFarm.name}的农场</div>
+      <div className={c(s.soil)}>{renderSoilBlock()}</div>
+      {!is_owner && (
+        <div className="hand usn mt-10" onClick={backToMyFarm}>
+          返回我的农场
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Soil;

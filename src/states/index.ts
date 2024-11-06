@@ -3,12 +3,14 @@ import { useSelector, useDispatch } from "react-redux";
 import solidReducer from "./Soil/reducer";
 import packageReducer from "./Package/reducer";
 import eventsReducer from "./Events/reducer";
+import accountReducer from "./Account/reducer";
 
 const store = configureStore({
   reducer: {
     solid: solidReducer,
     package: packageReducer,
     events: eventsReducer,
+    account: accountReducer,
   },
 });
 

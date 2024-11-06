@@ -4,6 +4,7 @@ import { Soil } from "@/components/Soil";
 
 export const useSoilConfig = () => {
   const solidConfig = useAppState((state) => state.solid.solid_config);
+  const solidConfigNeighbor = useAppState((state) => state.solid.solid_config_neighbor);
   const is_owner = useAppState((state) => state.solid.is_owner);
   const dispatch = useAppDispatch();
 
@@ -13,5 +14,5 @@ export const useSoilConfig = () => {
     }
   };
 
-  return { solidConfig, is_owner, updateSoilConfig };
+  return { solidConfig, solidConfigNeighbor, is_owner, updateSoilConfig };
 };

@@ -77,7 +77,7 @@ const initialState: PackageState = {
   balance: 100,
 };
 
-export const packageSlice = createSlice({
+const packageSlice = createSlice({
   name: "package",
   initialState,
   reducers: {

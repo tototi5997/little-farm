@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { Children, useState } from "react";
+import { useAccount, useFarm } from "@/states/Account/hook";
+import NeighborItem from "@/components/NeighborItem";
+import { TypeNeighbor } from "@/states/Account/reducer";
 import { Drawer } from "antd";
 import Soil from "@/components/Soil";
 import Package from "@/components/Package";
@@ -13,6 +16,10 @@ const Home = () => {
 
   const modal = useModal();
 
+  const { neigbhors, enterFarm, currentFarm } = useFarm();
+
+  const { ownerId, ownerName } = useAccount();
+
   const handleClickStore = () => {
     modal?.show("store_modal");
   };
@@ -25,6 +32,17 @@ const Home = () => {
     setShowNeighbors(true);
   };
 
+  const handleChangeFarm = (n: TypeNeighbor) => {
+    enterFarm(n);
+  };
+
+  const renderNeighbors = () => {
+    const neighborsData = [{ name: ownerName, id: ownerId }, ...neigbhors];
+    return neighborsData.map((n) => {
+      return Children.toArray(<NeighborItem data={n} onClick={() => handleChangeFarm(n)} isActive={n.id === currentFarm.id} />);
+    });
+  };
+
   return (
     <div className={c(s.home, "relative fbv fbac fbjc")}>
       <Package />
@@ -35,7 +53,9 @@ const Home = () => {
         <NpcBlock iconName="icon-sell" label="售卖" onClick={handleClickSell} />
         <NpcBlock iconName="icon-neighbor" label="邻居" onClick={handleClickNeighbor} />
       </div>
-      <Drawer title="邻居" open={showNeighbors} onClose={() => setShowNeighbors(false)} />
+      <Drawer title="邻居" open={showNeighbors} onClose={() => setShowNeighbors(false)} className={c(s.neighbor_drawer)}>
+        <div className="fbv gap-10">{renderNeighbors()}</div>
+      </Drawer>
     </div>
   );
 };

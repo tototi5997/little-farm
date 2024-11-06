@@ -20,7 +20,7 @@ const initialState: EventsState = {
   eventsList: [],
 };
 
-export const eventsSlice = createSlice({
+const eventsSlice = createSlice({
   name: "events",
   initialState,
   reducers: {
